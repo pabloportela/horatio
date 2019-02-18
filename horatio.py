@@ -34,13 +34,20 @@ def parse_order_barcodes(barcodes):
     return order_barcodes
 
 
-def generate_output(customer_orders, order_barcodes, output_filename):
-    ''' generates a csv file with barcodes per order, per customer '''
+def get_output(customer_orders, order_barcodes):
+    ''' generates output barcodes per order, per customer '''
+    output = list()
+    for customer_id, orders in customer_orders.items():
+        for order_id in orders:
+            output.append([customer_id, order_id] + order_barcodes[order_id])
+
+    return output
+
+def print_output(output, output_filename):
+    ''' generates a csv file with output '''
     with open(output_filename, 'w', newline='') as f:
         writer = csv.writer(f, delimiter=',')
-        for customer_id, orders in customer_orders.items():
-            for order_id in orders:
-                writer.writerow([customer_id, order_id] + order_barcodes[order_id])
+        writer.writerows(output)
 
 
 def get_unused_barcode_amount(barcodes):
@@ -155,7 +162,8 @@ def main():
     customer_orders = parse_customer_orders(orders)
 
     # outuput file
-    generate_output(customer_orders, order_barcodes, output_filename)
+    output = get_output(customer_orders, order_barcodes)
+    print_output(output, output_filename)
 
     # top 5 customers
     customer_ranking = get_customer_ranking(customer_orders, order_barcodes, 5)
