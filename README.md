@@ -28,3 +28,7 @@ This will run the script with barcodes.csv, orders.csv as input. Will use output
 ```
 python3.6 horatio.py
 ```
+
+### Tests
+
+Yet to come.
