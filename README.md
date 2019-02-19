@@ -24,9 +24,11 @@ git clone git@github.com:pabloportela/horatio.git
 This will run the script with barcodes.csv, orders.csv as input. Will use output.csv as output.
 
 ```
-python3.6 horatio.py --orders orders.csv --barcodes barcodes.csv --output output.csv
+python3.6 -m horatio.horatio --orders data/orders.csv --barcodes data/barcodes.csv --output output.csv
 ```
 
-### Tests
+### Testing
 
-Yet to come.
+```
+python3.6 -m unittest tests/test_integration.py
+```

@@ -3,7 +3,7 @@ import csv
 from collections import defaultdict
 import sys
 
-from lib.ranking import Ranking
+from horatio.ranking import Ranking
 
 
 def warn(msg):
@@ -12,9 +12,12 @@ def warn(msg):
 
 
 def parse_csv_as_dict_list(filename):
-    with open(filename) as f:
-        reader = csv.DictReader(f)
-        return list(reader)
+    try:
+        with open(filename) as f:
+            reader = csv.DictReader(f)
+            return list(reader)
+    except Exception as e:
+        raise Exception('Unable to parse csv file {}: {}'.format(filename, str(e)))
 
 
 def parse_customer_orders(orders):
@@ -51,9 +54,12 @@ def get_output(customer_orders, order_barcodes):
 def print_output(output, output_filename):
     ''' generates a csv file with output '''
 
-    with open(output_filename, 'w', newline='') as f:
-        writer = csv.writer(f, delimiter=',')
-        writer.writerows(output)
+    try:
+        with open(output_filename, 'w', newline='') as f:
+            writer = csv.writer(f, delimiter=',')
+            writer.writerows(output)
+    except Exception as e:
+        raise Exception('Unable to write output file {}: {}'.format(output_filename, str(e)))
 
 
 def get_unused_barcode_amount(barcodes):
@@ -98,7 +104,7 @@ def remove_barcode_dupes(barcodes):
             unique_barcodes.add(row['barcode'])
 
     if barcode_dupes:
-        warn('\nFound duplicate barcodes: {}.\nIgnoring such barcodes and related orders.\n'.format(', '.join(barcode_dupes)))
+        warn('\nIgnoring orders for duplicate barcodes: {}.\n'.format(', '.join(barcode_dupes)))
 
     return [row for row in barcodes if row['barcode'] not in barcode_dupes]
 
@@ -113,20 +119,21 @@ def remove_orders_without_barcodes(orders, order_ids_with_barcode):
             orders_with_barcodes.append(row)
 
     if order_ids_without_barcode:
-        warn('Found orders without barcode: {}.\nIgnoring them.\n'.format(', '.join(order_ids_without_barcode)))
+        sorted_ids = sorted(order_ids_without_barcode)
+        warn('Ignoring orders without barcode: {}.\n'.format(', '.join(sorted_ids)))
 
     return orders_with_barcodes
 
 
-def main(orders_filename, barcodes_filename, output_filename):
+def run(orders_filename, barcodes_filename, output_filename):
     ''' generate output file and print report '''
 
     # read input
     barcodes = parse_csv_as_dict_list(barcodes_filename)
-    barcodes = remove_barcode_dupes(barcodes)
+    orders = parse_csv_as_dict_list(orders_filename)
 
     # validate, sanitize
-    orders = parse_csv_as_dict_list(orders_filename)
+    barcodes = remove_barcode_dupes(barcodes)
     orders = remove_orders_without_barcodes(orders, set(row['order_id'] for row in barcodes))
 
     # generate data structures
@@ -154,10 +161,13 @@ def parse_arguments():
 
 
 if __name__ == '__main__':
-    arguments = parse_arguments()
 
-    main(
-        orders_filename=arguments.orders,
-        barcodes_filename=arguments.barcodes,
-        output_filename=arguments.output
-    )
+    try:
+        arguments = parse_arguments()
+        run(
+            orders_filename=arguments.orders,
+            barcodes_filename=arguments.barcodes,
+            output_filename=arguments.output
+        )
+    except Exception as e:
+        print(str(e))

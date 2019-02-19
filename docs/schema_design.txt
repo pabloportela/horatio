@@ -1,14 +1,14 @@
 Barcode:
 id int (pk, index)
-order_id: int or NULL
+order_id: int or NULL (index)
 
 
 Customer:
-id int (id)
+id int (pk, index)
 name str
 
 
 Order:
 id int (pk, index)
 customer_id int (index)
-(constrain: id-customer_id unique)
+(constraint: id, customer_id unique)
