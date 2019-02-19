@@ -2,8 +2,10 @@ import csv
 from collections import defaultdict
 import sys
 
+from lib.ranking import Ranking
 
-def log(msg):
+
+def warn(msg):
     ''' logs to stderr '''
     print(msg, file=sys.stderr)
 
@@ -43,6 +45,7 @@ def get_output(customer_orders, order_barcodes):
 
     return output
 
+
 def print_output(output, output_filename):
     ''' generates a csv file with output '''
     with open(output_filename, 'w', newline='') as f:
@@ -81,35 +84,6 @@ def print_customer_ranking(ranking):
     print()
 
 
-class Ranking:
-    ''' Builds a top-<length> ranking of <item> according to <value> '''
-
-    def __init__(self, length):
-        self.length = length
-        self.items = list()
-        self.min_value = -1
-
-    def add(self, item, value):
-        ''' adds to the ranking if item belongs, discards otherwise '''
-
-        # discard unless ranking not complete or value below threshold
-        if not (len(self.items) < self.length or value > self.min_value):
-            return
-
-        # append and sort
-        self.items.append(tuple([item, value]))
-        self.items.sort(key=lambda x: x[1], reverse=True)
-
-        # cut out eventual item out of the ranking
-        self.items = self.items[:self.length]
-
-        # update entry barrier
-        self.min_value = self.items[-1][1]
-
-    def get(self):
-        return self.items
-
-
 def remove_barcode_dupes(barcodes):
     unique_barcodes = set()
     barcode_dupes = set()
@@ -121,7 +95,7 @@ def remove_barcode_dupes(barcodes):
             unique_barcodes.add(row['barcode'])
 
     if barcode_dupes:
-        log('\nFound duplicate barcodes: {}.\nIgnoring such barcodes and related orders.\n'.format(', '.join(barcode_dupes)))
+        warn('\nFound duplicate barcodes: {}.\nIgnoring such barcodes and related orders.\n'.format(', '.join(barcode_dupes)))
 
     return [row for row in barcodes if row['barcode'] not in barcode_dupes]
 
@@ -136,7 +110,7 @@ def remove_orders_without_barcodes(orders, order_ids_with_barcode):
             orders_with_barcodes.append(row)
 
     if order_ids_without_barcode:
-        log('Found orders without barcode: {}.\nIgnoring them.\n'.format(', '.join(order_ids_without_barcode)))
+        warn('Found orders without barcode: {}.\nIgnoring them.\n'.format(', '.join(order_ids_without_barcode)))
 
     return orders_with_barcodes
 
