@@ -1,3 +1,4 @@
+import argparse
 import csv
 from collections import defaultdict
 import sys
@@ -38,6 +39,7 @@ def parse_order_barcodes(barcodes):
 
 def get_output(customer_orders, order_barcodes):
     ''' generates output barcodes per order, per customer '''
+
     output = list()
     for customer_id, orders in customer_orders.items():
         for order_id in orders:
@@ -48,6 +50,7 @@ def get_output(customer_orders, order_barcodes):
 
 def print_output(output, output_filename):
     ''' generates a csv file with output '''
+
     with open(output_filename, 'w', newline='') as f:
         writer = csv.writer(f, delimiter=',')
         writer.writerows(output)
@@ -115,13 +118,8 @@ def remove_orders_without_barcodes(orders, order_ids_with_barcode):
     return orders_with_barcodes
 
 
-def main():
+def main(orders_filename, barcodes_filename, output_filename):
     ''' generate output file and print report '''
-
-    # define input and output files
-    orders_filename = 'orders.csv'
-    barcodes_filename = 'barcodes.csv'
-    output_filename = 'output.csv'
 
     # read input
     barcodes = parse_csv_as_dict_list(barcodes_filename)
@@ -147,5 +145,19 @@ def main():
     print_unused_barcode_amount(barcodes)
 
 
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Process customers, orders and barcodes')
+    parser.add_argument('--orders', type=str, help='orders csv file', default='orders.csv')
+    parser.add_argument('--barcodes', type=str, help='barcodes csv file', default='barcodes.csv')
+    parser.add_argument('--output', type=str, help='output csv file', default='output.csv')
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
-    main()
+    arguments = parse_arguments()
+
+    main(
+        orders_filename=arguments.orders,
+        barcodes_filename=arguments.barcodes,
+        output_filename=arguments.output
+    )
